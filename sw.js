@@ -1,13 +1,14 @@
 /* Офлайн-режим: сначала сеть (чтобы обновления приходили сразу), при отсутствии сети — сохранённая копия.
    При добавлении приложения допишите его страницу в PRECACHE и поднимите VERSION. */
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = "bio-ct-" + VERSION;
 const PRECACHE = [
   "./",
   "./manifest.webmanifest",
   "./assets/icon.svg",
   "./assets/icon-192.png",
-  "./apps/chromosome-set/"
+  "./apps/chromosome-set/",
+  "./apps/molecular-bio/"
 ];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
