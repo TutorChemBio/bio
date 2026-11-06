@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Биология · ЦТ</title>
+<meta name="description" content="Тренажёры и генераторы задач для подготовки к ЦТ по биологии.">
+<meta name="theme-color" content="#F7F5F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181D" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<style>
+/* Стандарт платформы — токены. Каталог: одна колонка до 640 px, карточки-ссылки по разделам программы. */
+:root{
+  --bg:#F7F5F0; --surface:#FFFFFF; --surface-2:#F0EDE6;
+  --text:#2B2D33; --muted:#6B6F7A; --border:#E4E1DA;
+  --accent:#4F8E80; --accent-soft:#DCEFEA; --on-accent:#FFFFFF;
+  --ok:#2F8A5B; --ok-soft:#E3F4EA;
+  --info:#6A63AE; --info-soft:#ECEAF7;
+  --shadow:0 1px 2px rgba(40,35,25,.06),0 4px 14px rgba(40,35,25,.06);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r-card:16px; --r-ctl:12px;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181D; --surface:#20232A; --surface-2:#2A2E36;
+    --text:#E8E6E1; --muted:#A2A6B0; --border:#353943;
+    --accent:#7FC2B3; --accent-soft:#25403A; --on-accent:#10201C;
+    --ok:#6FCB98; --ok-soft:#1F3A2B;
+    --info:#ADA6F0; --info-soft:#2D2A47;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#16181D; --surface:#20232A; --surface-2:#2A2E36;
+    --text:#E8E6E1; --muted:#A2A6B0; --border:#353943;
+    --accent:#7FC2B3; --accent-soft:#25403A; --on-accent:#10201C;
+    --ok:#6FCB98; --ok-soft:#1F3A2B;
+    --info:#ADA6F0; --info-soft:#2D2A47;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+    color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--text);font:16px/1.5 var(--font);margin:0;-webkit-text-size-adjust:100%}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button{font:inherit;color:inherit}
+
+.head{display:flex;align-items:center;gap:12px;padding-block:20px 8px}
+.logo{width:44px;height:44px;border-radius:12px;flex:none}
+.head .t{flex:1;min-width:0}
+.head h1{font-size:22px;line-height:1.2;font-weight:650;margin:0}
+.head p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.icon-btn{flex:none;width:48px;height:48px;border-radius:999px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center}
+.icon-btn svg{width:22px;height:22px}
+
+main{display:flex;flex-direction:column;gap:24px;padding-block:8px 32px}
+section{display:flex;flex-direction:column;gap:10px}
+h2{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0}
+
+.app{display:flex;flex-direction:column;gap:8px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);box-shadow:var(--shadow);color:inherit;text-decoration:none;min-height:48px}
+.app:active{background:var(--surface-2)}
+.app .top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.app h3{font-size:18px;line-height:1.3;margin:0}
+.app .go{color:var(--accent);font-weight:600;white-space:nowrap}
+.app p{margin:0;font-size:15px;color:var(--muted);line-height:1.45}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-flex;align-items:center;min-height:26px;padding:2px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:13px}
+.tag.done{background:var(--ok-soft);color:var(--ok);font-variant-numeric:tabular-nums}
+
+.soon{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.soon li{padding:12px 16px;border:1px dashed var(--border);border-radius:var(--r-ctl);color:var(--muted);font-size:15px}
+
+details.tip{background:var(--info-soft);border-radius:var(--r-ctl);padding:12px 16px}
+details.tip summary{cursor:pointer;font-weight:600;min-height:28px}
+details.tip ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:15px}
+details.tip p{margin:8px 0 0;font-size:15px}
+
+footer{border-top:1px solid var(--border);padding-block:12px 28px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="head">
+    <img class="logo" src="assets/icon.svg" alt="">
+    <div class="t">
+      <h1>Биология · ЦТ</h1>
+      <p>Тренажёры и задачи для подготовки к ЦТ</p>
+    </div>
+    <button class="icon-btn" id="theme-btn" type="button" aria-label="Сменить тему">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <details class="tip" id="install-tip">
+      <summary>Как поставить на телефон</summary>
+      <ol>
+        <li>Открой эту страницу в обычном браузере: Chrome на Android или Safari на iPhone. В Telegram нажми «⋯» → «Открыть в браузере».</li>
+        <li><b>Android:</b> меню «⋮» → «Добавить на главный экран» или «Установить приложение».</li>
+        <li><b>iPhone:</b> кнопка «Поделиться» → «На экран „Домой“».</li>
+      </ol>
+      <p>Прогресс сохраняется в этом браузере на этом телефоне. Решай всегда в одном и том же браузере, иначе статистика начнётся заново.</p>
+    </details>
+    <div id="catalog"></div>
+  </main>
+
+  <footer>
+    <span>Учебный материал для подготовки к ЦТ</span>
+    <span id="foot-version"></span>
+  </footer>
+</div>
+
+<!-- ===================== ДАННЫЕ КАТАЛОГА ===================== -->
+<script type="application/json" id="catalog-data">
+{
+  "version": "1.0",
+  "sections": [
+    {
+      "title": "Клетка: деление",
+      "apps": [
+        {
+          "id": "chromosome-set",
+          "title": "Хромосомный набор",
+          "href": "apps/chromosome-set/",
+          "type": "Генератор задач",
+          "topics": ["А4.3", "А4.5"],
+          "description": "Число хромосом и молекул ДНК в интерфазе, митозе, мейозе и гаметогенезе. Прямой и обратный расчёт, разбор каждой задачи."
+        }
+      ]
+    }
+  ],
+  "soon": ["Молекулярная биология: ДНК, иРНК, белок", "Тренажёр заданий формата ЦТ", "Генетика: задачи на скрещивание"]
+}
+</script>
+
+<!-- ===================== ДВИЖОК КАТАЛОГА ===================== -->
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+/* Тема — общий ключ ctp.theme для всего сайта */
+(function () { const t = read("ctp.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; })();
+$("#theme-btn").addEventListener("click", () => {
+  const cur = document.documentElement.dataset.theme;
+  const dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  const t = dark ? "light" : "dark"; document.documentElement.dataset.theme = t; store("ctp.theme", t);
+});
+
+/* Прогресс ученика из хранилища приложения (тот же домен) */
+function progressOf(id) {
+  try {
+    const p = JSON.parse(read(`ctp.${id}.v1`) || "null");
+    if (!p || p.v !== 1 || !(p.solved > 0)) return "";
+    return `Решено ${p.solved} · ${Math.round(p.correct / p.solved * 100)} %`;
+  } catch (e) { return ""; }
+}
+
+let D = { sections: [], soon: [] };
+try { D = JSON.parse($("#catalog-data").textContent); } catch (e) {}
+$("#catalog").innerHTML = (D.sections || []).map(s => `<section><h2>${esc(s.title)}</h2>${
+  s.apps.map(a => { const pr = progressOf(a.id); return `<a class="app" href="${esc(a.href)}">
+    <div class="top"><h3>${esc(a.title)}</h3><span class="go">Открыть →</span></div>
+    <p>${esc(a.description)}</p>
+    <div class="meta"><span class="tag">${esc(a.type)}</span>${(a.topics || []).map(t => `<span class="tag">${esc(t)}</span>`).join("")}${pr ? `<span class="tag done">${esc(pr)}</span>` : ""}</div>
+  </a>`; }).join("")}</section>`).join("") +
+  ((D.soon || []).length ? `<section><h2>Скоро</h2><ul class="soon">${D.soon.map(x => `<li>${esc(x)}</li>`).join("")}</ul></section>` : "");
+$("#foot-version").textContent = "Каталог v" + (D.version || "1.0");
+
+/* Подсказку об установке не показываем в установленном приложении */
+if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) $("#install-tip").hidden = true;
+
+try { if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) {}
+</script>
+</body>
+</html>

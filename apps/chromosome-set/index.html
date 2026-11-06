@@ -1,0 +1,955 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Хромосомный набор</title>
+<meta name="description" content="Генератор задач на число хромосом и молекул ДНК: интерфаза, митоз, мейоз, гаметогенез. Подготовка к ЦТ по биологии.">
+<meta name="theme-color" content="#F7F5F0" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16181D" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="../../manifest.webmanifest">
+<link rel="icon" href="../../assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../../assets/apple-touch-icon.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<style>
+/* Стандарт платформы v1.1 — токены. Колонка до 640 px, панель действий внизу в зоне большого пальца. */
+:root{
+  --bg:#F7F5F0; --surface:#FFFFFF; --surface-2:#F0EDE6;
+  --text:#2B2D33; --muted:#6B6F7A; --border:#E4E1DA;
+  --accent:#4F8E80; --accent-soft:#DCEFEA; --on-accent:#FFFFFF;
+  --ok:#2F8A5B;  --ok-soft:#E3F4EA;
+  --err:#C0503F; --err-soft:#FBE6E3;
+  --warn:#9C7420; --warn-soft:#FBF1DC;
+  --info:#6A63AE; --info-soft:#ECEAF7;
+  --shadow:0 1px 2px rgba(40,35,25,.06),0 4px 14px rgba(40,35,25,.06);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r-card:16px; --r-ctl:12px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181D; --surface:#20232A; --surface-2:#2A2E36;
+    --text:#E8E6E1; --muted:#A2A6B0; --border:#353943;
+    --accent:#7FC2B3; --accent-soft:#25403A; --on-accent:#10201C;
+    --ok:#6FCB98;  --ok-soft:#1F3A2B;
+    --err:#F08E7E; --err-soft:#43251F;
+    --warn:#E3BE6B; --warn-soft:#3D3220;
+    --info:#ADA6F0; --info-soft:#2D2A47;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#16181D; --surface:#20232A; --surface-2:#2A2E36;
+    --text:#E8E6E1; --muted:#A2A6B0; --border:#353943;
+    --accent:#7FC2B3; --accent-soft:#25403A; --on-accent:#10201C;
+    --ok:#6FCB98;  --ok-soft:#1F3A2B;
+    --err:#F08E7E; --err-soft:#43251F;
+    --warn:#E3BE6B; --warn-soft:#3D3220;
+    --info:#ADA6F0; --info-soft:#2D2A47;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+    color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:16px/1.5 var(--font);margin:0;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+i.lat{font-style:italic}
+
+/* Шапка */
+.app-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:16px 4px}
+.app-head h1{font-size:21px;line-height:1.25;font-weight:650;margin:0;text-wrap:balance}
+.app-head .codes{font-size:13px;color:var(--muted);letter-spacing:.02em;margin-top:2px}
+.icon-btn{flex:none;width:48px;height:48px;border-radius:999px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center}
+.icon-btn svg{width:22px;height:22px}
+
+/* Режимы */
+.modes{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px}
+.tabs{display:flex;gap:4px;background:var(--surface-2);border-radius:999px;padding:4px;overflow-x:auto;scrollbar-width:none}
+.tab{flex:1 0 auto;min-height:44px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+.progress{font-size:14px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums;display:flex;gap:6px;flex-wrap:wrap}
+.progress b{color:var(--text);font-weight:600}
+
+main{padding-block:12px 128px;display:flex;flex-direction:column;gap:16px}
+
+/* Карточка и общие элементы */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.card h2{font-size:18px;margin:0;line-height:1.3;text-wrap:balance}
+.card h3{font-size:15px;margin:0;color:var(--muted);font-weight:600;letter-spacing:.02em}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.tag{display:inline-flex;align-items:center;min-height:26px;padding:2px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:13px}
+.prompt{font-size:17.5px;line-height:1.45;margin:0}
+.hint{font-size:14px;color:var(--muted);margin:0}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 18px;border-radius:var(--r-ctl);border:1px solid transparent;font-weight:600;cursor:pointer;text-decoration:none;text-align:center}
+.btn-primary{background:var(--accent);color:var(--on-accent);min-height:52px;width:100%}
+.btn-primary[disabled]{opacity:.45;cursor:default}
+.btn-secondary{background:var(--surface-2);color:var(--text);border-color:var(--border)}
+.btn-text{background:transparent;color:var(--accent);padding:0 8px;min-height:44px}
+.btn-danger{background:var(--err);color:var(--surface)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>.btn{flex:1 1 140px}
+
+/* Варианты ответа */
+.opts{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.opt{display:flex;align-items:flex-start;gap:12px;width:100%;min-height:52px;padding:12px 14px;border:1px solid var(--border);border-radius:var(--r-ctl);background:var(--surface);text-align:left;cursor:pointer;line-height:1.4}
+.opt .num{flex:none;width:28px;height:28px;border-radius:999px;background:var(--surface-2);display:grid;place-items:center;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.opt .txt{padding-top:3px;min-width:0}
+.opt.sel{border:2px solid var(--accent);background:var(--accent-soft);padding:11px 13px}
+.opt.sel .num{background:var(--accent);color:var(--on-accent)}
+.opt.is-ok{border:2px solid var(--ok);background:var(--ok-soft);padding:11px 13px}
+.opt.is-err{border:2px solid var(--err);background:var(--err-soft);padding:11px 13px}
+.opt[disabled]{cursor:default}
+.mark{margin-left:auto;font-weight:700;padding-top:3px}
+.is-ok .mark{color:var(--ok)} .is-err .mark{color:var(--err)}
+
+/* Соответствие */
+.match-right{margin:0;padding:12px 14px;border-radius:var(--r-ctl);background:var(--surface-2);list-style:none;display:flex;flex-direction:column;gap:6px;font-size:15px}
+.match-right li{display:flex;gap:8px}
+.match-right b{font-variant-numeric:tabular-nums}
+.match-row{display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid var(--border)}
+.match-row:first-of-type{border-top:0;padding-top:0}
+.match-row .left{display:flex;gap:10px}
+.match-row .letter{flex:none;font-weight:700;width:22px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding-left:32px}
+.chip{width:48px;height:48px;border-radius:var(--r-ctl);border:1px solid var(--border);background:var(--surface);font-weight:600;cursor:pointer;font-variant-numeric:tabular-nums}
+.chip.sel{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.chip[disabled]{cursor:default}
+
+/* Ввод */
+.field{display:flex;align-items:center;gap:10px}
+.input{flex:1;min-width:0;min-height:52px;padding:0 14px;border:1px solid var(--border);border-radius:var(--r-ctl);background:var(--surface);font-size:17px}
+.input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.unit{color:var(--muted)}
+.answer-line{font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums;margin:0}
+.answer-line b{color:var(--text)}
+
+/* Плашки */
+.note{border-radius:var(--r-ctl);padding:12px 14px 12px 16px;border-left:4px solid;display:flex;flex-direction:column;gap:4px;line-height:1.45}
+.note strong{font-weight:700}
+.note-ok{background:var(--ok-soft);border-color:var(--ok)} .note-ok strong{color:var(--ok)}
+.note-err{background:var(--err-soft);border-color:var(--err)} .note-err strong{color:var(--err)}
+.note-info{background:var(--info-soft);border-color:var(--info)}
+.note-warn{background:var(--warn-soft);border-color:var(--warn)} .note-warn strong{color:var(--warn)}
+
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+details.review{border-top:1px solid var(--border);padding-top:12px}
+details.review summary{cursor:pointer;color:var(--accent);font-weight:600;min-height:32px}
+details.review[open] summary{margin-bottom:8px}
+
+/* Таблицы */
+.table-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px;letter-spacing:.02em}
+
+/* Статистика */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface-2);border-radius:var(--r-ctl);padding:10px 12px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums;line-height:1.2}
+.stat span{font-size:13px;color:var(--muted)}
+.tag-stat{display:flex;flex-direction:column;gap:6px}
+.tag-stat .top{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.tag-stat .top span:last-child{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:8px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.bar.low i{background:var(--err)} .bar.mid i{background:var(--warn)}
+pre.report{margin:0;white-space:pre-wrap;word-break:break-word;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--surface-2);border-radius:var(--r-ctl);padding:12px 14px}
+label.lbl{font-size:14px;color:var(--muted);font-weight:600}
+
+/* Итог теста */
+.score{font-size:40px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font-size:18px;color:var(--muted);font-weight:600}
+
+/* Панель действий */
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--border);padding-block:12px calc(12px + env(safe-area-inset-bottom,0px))}
+
+/* Подвал */
+footer.app-foot{padding-block:8px 24px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--border);margin-top:8px}
+footer.app-foot a{color:var(--accent);font-weight:600;text-decoration:none;min-height:32px;display:inline-flex;align-items:center}
+
+@media (prefers-reduced-motion:no-preference){
+  .opt,.chip,.tab,.btn{transition:background-color .15s,border-color .15s}
+}
+
+/* Таблица состояний (режим «Учить») */
+table.states th,table.states td{padding:8px 8px}
+table.states .fcell{font-weight:700;white-space:nowrap}
+table.states tr.grp th{background:var(--surface-2);color:var(--text);font-size:13px;letter-spacing:.02em}
+</style>
+
+<div class="wrap">
+  <header class="app-head">
+    <div>
+      <h1 id="app-title">Хромосомный набор</h1>
+      <div class="codes" id="app-codes"></div>
+    </div>
+    <button class="icon-btn" id="theme-btn" type="button" aria-label="Сменить тему">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/></svg>
+    </button>
+  </header>
+
+  <div class="modes">
+    <div class="tabs" role="tablist" id="tabs"></div>
+    <div class="progress" id="progress" aria-live="polite"></div>
+  </div>
+
+  <main id="main"></main>
+
+  <footer class="app-foot" id="foot"></footer>
+</div>
+
+<div class="actionbar" id="actionbar" hidden>
+  <div class="wrap"><button class="btn btn-primary" id="primary-btn" type="button"></button></div>
+</div>
+
+<!-- ===================== ДАННЫЕ ===================== -->
+<script type="application/json" id="app-data">
+{
+  "learn": [
+    {
+      "id": "l-rules",
+      "title": "Как считать n и c",
+      "topic": "—",
+      "text": "1. n — число хромосом в гаплоидном наборе, c — количество ДНК в гаплоидном наборе (каждая молекула ДНК — одна хроматида).<br>2. До синтеза ДНК каждая хромосома состоит из одной хроматиды: число молекул ДНК равно числу хромосом.<br>3. В S-периоде ДНК удваивается: число хромосом то же, молекул ДНК вдвое больше.<br>4. В анафазе хроматиды становятся самостоятельными хромосомами, поэтому число хромосом в клетке временно удваивается (анафаза митоза, анафаза II мейоза)."
+    }
+  ],
+  "organisms": [
+    { "id": "human",  "name": "человек",        "gen": "человека",       "twoN": 46, "verified": true },
+    { "id": "fly",    "name": "дрозофила",      "gen": "дрозофилы",      "twoN": 8,  "verified": true },
+    { "id": "cat",    "name": "домашняя кошка", "gen": "домашней кошки", "twoN": 38, "verified": true },
+    { "id": "dog",    "name": "собака",         "gen": "собаки",         "twoN": 78, "verified": true },
+    { "id": "mouse",  "name": "домовая мышь",   "gen": "домовой мыши",   "twoN": 40, "verified": true },
+    { "id": "chimp",  "name": "шимпанзе",       "gen": "шимпанзе",       "twoN": 48, "verified": true }
+  ],
+  "states": [
+    { "id": "g1",        "text": "в клетке в пресинтетическом периоде интерфазы", "forText": "клетки в пресинтетическом периоде интерфазы", "label": "Интерфаза: пресинтетический период", "formula": "2n2c", "chr": 2, "dna": 2, "dichro": false, "tag": "интерфаза", "note": "ДНК ещё не удвоилась, каждая хромосома состоит из одной хроматиды", "verified": true },
+    { "id": "g2",        "text": "в клетке в постсинтетическом периоде интерфазы", "forText": "клетки в постсинтетическом периоде интерфазы", "label": "Интерфаза: постсинтетический период", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "интерфаза", "note": "ДНК удвоилась в S-периоде, каждая хромосома состоит из двух хроматид", "verified": true },
+    { "id": "mit-pro",   "text": "в клетке в профазе митоза", "forText": "клетки в профазе митоза", "label": "Профаза митоза", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "митоз", "note": "ДНК удвоилась в S-периоде, расхождения ещё не было", "verified": true },
+    { "id": "mit-meta",  "text": "в клетке в метафазе митоза", "forText": "клетки в метафазе митоза", "label": "Метафаза митоза", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "митоз", "note": "ДНК удвоена, хромосомы стоят на экваторе, расхождения ещё не было", "verified": true },
+    { "id": "mit-ana",   "text": "в клетке в анафазе митоза", "forText": "клетки в анафазе митоза", "label": "Анафаза митоза", "formula": "4n4c", "chr": 4, "dna": 4, "dichro": false, "tag": "митоз", "note": "хроматиды разошлись и стали самостоятельными хромосомами, поэтому хромосом вдвое больше, а ДНК столько же", "verified": true },
+    { "id": "mit-end",   "text": "в каждой из клеток, образовавшихся в результате митоза", "forText": "каждой из клеток, образовавшихся в результате митоза", "label": "Клетки после митоза (каждая)", "formula": "2n2c", "chr": 2, "dna": 2, "dichro": false, "tag": "митоз", "note": "каждая дочерняя клетка получила набор клетки до удвоения ДНК", "verified": true },
+    { "id": "mei1-pro",  "text": "в клетке в профазе I мейоза", "forText": "клетки в профазе I мейоза", "label": "Профаза I мейоза", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "мейоз I", "note": "ДНК удвоена в интерфазе, гомологичные хромосомы конъюгируют", "verified": true },
+    { "id": "mei1-meta", "text": "в клетке в метафазе I мейоза", "forText": "клетки в метафазе I мейоза", "label": "Метафаза I мейоза", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "мейоз I", "note": "биваленты стоят на экваторе, набор не изменился", "verified": true },
+    { "id": "mei1-ana",  "text": "в клетке в анафазе I мейоза", "forText": "клетки в анафазе I мейоза", "label": "Анафаза I мейоза", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "мейоз I", "note": "к полюсам расходятся гомологичные хромосомы (каждая из двух хроматид), число хромосом в клетке не изменилось", "verified": true },
+    { "id": "mei1-end",  "text": "в каждой из клеток, образовавшихся после первого деления мейоза", "forText": "каждой из клеток, образовавшихся после первого деления мейоза", "label": "После мейоза I (каждая клетка)", "formula": "1n2c", "chr": 1, "dna": 2, "dichro": true, "tag": "мейоз I", "note": "в каждую клетку ушла половина хромосом, и каждая из них состоит из двух хроматид", "verified": true },
+    { "id": "mei2-meta", "text": "в клетке в метафазе II мейоза", "forText": "клетки в метафазе II мейоза", "label": "Метафаза II мейоза", "formula": "1n2c", "chr": 1, "dna": 2, "dichro": true, "tag": "мейоз II", "note": "набор гаплоидный, хромосомы двухроматидные, между делениями ДНК не удваивалась", "verified": true },
+    { "id": "mei2-ana",  "text": "в клетке в анафазе II мейоза", "forText": "клетки в анафазе II мейоза", "label": "Анафаза II мейоза", "formula": "2n2c", "chr": 2, "dna": 2, "dichro": false, "tag": "мейоз II", "note": "хроматиды разошлись и стали хромосомами, поэтому в клетке хромосом вдвое больше, чем в гаплоидном наборе, а ДНК столько же", "verified": true },
+    { "id": "mei2-end",  "text": "в каждой из клеток, образовавшихся после второго деления мейоза", "forText": "каждой из клеток, образовавшихся после второго деления мейоза", "label": "После мейоза II (каждая клетка)", "formula": "1n1c", "chr": 1, "dna": 1, "dichro": false, "tag": "мейоз II", "note": "образовались гаплоидные клетки с однохроматидными хромосомами", "verified": true },
+    { "id": "spg",       "text": "в сперматогонии (зона размножения)", "forText": "сперматогония (зона размножения)", "label": "Сперматогоний (зона размножения)", "formula": "2n2c", "chr": 2, "dna": 2, "dichro": false, "tag": "гаметогенез", "note": "диплоидная клетка зоны размножения, ДНК не удвоена", "verified": true },
+    { "id": "spc1",      "text": "в сперматоците I порядка перед мейозом", "forText": "сперматоцита I порядка перед мейозом", "label": "Сперматоцит I порядка (перед мейозом)", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "гаметогенез", "note": "перед мейозом ДНК удвоилась, хромосомы двухроматидные", "verified": true },
+    { "id": "spc2",      "text": "в сперматоците II порядка", "forText": "сперматоцита II порядка", "label": "Сперматоцит II порядка", "formula": "1n2c", "chr": 1, "dna": 2, "dichro": true, "tag": "гаметогенез", "note": "после мейоза I набор гаплоидный, хромосомы двухроматидные", "verified": true },
+    { "id": "spt",       "text": "в сперматиде", "forText": "сперматиды", "label": "Сперматида", "formula": "1n1c", "chr": 1, "dna": 1, "dichro": false, "tag": "гаметогенез", "note": "после мейоза II набор гаплоидный, хромосомы однохроматидные", "verified": true },
+    { "id": "sperm",     "text": "в сперматозоиде", "forText": "сперматозоида", "label": "Сперматозоид", "formula": "1n1c", "chr": 1, "dna": 1, "dichro": false, "tag": "гаметогенез", "note": "зрелая гаплоидная гамета, хромосомы однохроматидные", "verified": true },
+    { "id": "ooc1",      "text": "в ооците I порядка перед мейозом", "forText": "ооцита I порядка перед мейозом", "label": "Ооцит I порядка (перед мейозом)", "formula": "2n4c", "chr": 2, "dna": 4, "dichro": true, "tag": "гаметогенез", "note": "перед мейозом ДНК удвоилась, хромосомы двухроматидные", "verified": true },
+    { "id": "ooc2",      "text": "в ооците II порядка", "forText": "ооцита II порядка", "label": "Ооцит II порядка", "formula": "1n2c", "chr": 1, "dna": 2, "dichro": true, "tag": "гаметогенез", "note": "после мейоза I набор гаплоидный, хромосомы двухроматидные", "verified": true },
+    { "id": "pb1",       "text": "в первом полярном (направительном) тельце", "forText": "первого полярного (направительного) тельца", "label": "Первое полярное тельце", "formula": "1n2c", "chr": 1, "dna": 2, "dichro": true, "tag": "гаметогенез", "note": "тельце образуется при первом делении мейоза, набор такой же, как у ооцита II порядка", "verified": true },
+    { "id": "egg",       "text": "в яйцеклетке", "forText": "яйцеклетки", "label": "Яйцеклетка", "formula": "1n1c", "chr": 1, "dna": 1, "dichro": false, "tag": "гаметогенез", "note": "зрелая гаплоидная гамета, хромосомы однохроматидные", "verified": true },
+    { "id": "zyg",       "text": "в зиготе до синтеза ДНК", "forText": "зиготы до синтеза ДНК", "label": "Зигота до синтеза ДНК", "formula": "2n2c", "chr": 2, "dna": 2, "dichro": false, "tag": "оплодотворение", "note": "при слиянии гамет восстанавливается диплоидный набор, ДНК ещё не удвоена", "verified": true }
+  ],
+  "chains": [
+    ["g1", "g2", "mit-pro", "mit-meta", "mit-ana", "mit-end"],
+    ["g1", "g2", "mei1-pro", "mei1-meta", "mei1-ana", "mei1-end", "mei2-meta", "mei2-ana", "mei2-end"],
+    ["spg", "spc1", "spc2", "spt", "sperm"],
+    ["ooc1", "ooc2", "pb1", "egg"],
+    ["sperm", "egg", "zyg"]
+  ],
+  "confusions": {
+    "2n2c": ["2n4c", "4n4c", "1n1c", "1n2c"],
+    "2n4c": ["2n2c", "1n2c", "4n4c", "1n1c"],
+    "1n2c": ["2n4c", "1n1c", "2n2c", "4n4c"],
+    "1n1c": ["1n2c", "2n2c", "2n4c", "4n4c"],
+    "4n4c": ["2n4c", "2n2c", "1n2c", "1n1c"]
+  }
+}
+</script>
+
+<!-- ===================== ДВИЖОК ===================== -->
+<script>
+const APP = {
+  id: "chromosome-set",
+  title: "Хромосомный набор",
+  version: "1.1",
+  subject: "bio",
+  topics: ["А4.3", "А4.5"],
+  catalogUrl: "../../",   // каталог сайта
+  tutorContact: null,     // например "@username" — показывается рядом с кнопкой отчёта
+  testSize: 10,
+  modes: ["learn", "train", "test", "stats"],
+  demo: false
+};
+
+const MODE_NAMES = { learn: "Учить", train: "Тренировка", test: "Тест", stats: "Ошибки" };
+const TYPE_NAMES = { single: "Один ответ", multi: "Несколько ответов", match: "Соответствие", order: "Последовательность", number: "Числовой ответ", text: "Краткий ответ" };
+const TYPE_HINTS = { multi: "Отметь все верные варианты.", match: "Для каждой буквы выбери цифру.", order: "Нажимай варианты в нужном порядке.", number: "Введи число.", text: "Введи термин одним словом." };
+const LETTERS = ["А","Б","В","Г","Д","Е","Ж"];
+
+/* ---------- Утилиты ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const rich = s => esc(s).replace(/&lt;(\/?)(sub|sup|i|b|br)\s*\/?&gt;/g, "<$1$2>");
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pct = (ok, n) => n ? Math.round(ok / n * 100) : 0;
+const today = () => new Date().toLocaleDateString("ru-RU");
+const normText = s => String(s).trim().toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ");
+const parseNum = s => { const t = String(s).replace(/\s/g, "").replace(",", "."); return /^-?\d+(\.\d+)?$/.test(t) ? parseFloat(t) : NaN; };
+
+/* ---------- Хранилище ---------- */
+const KEY = `ctp.${APP.id}.v1`;
+function store(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function blank() { return { v: 1, solved: 0, correct: 0, streak: 0, best: 0, byTag: {}, seen: {}, lastTest: null }; }
+function loadProgress() {
+  try {
+    const o = JSON.parse(read(KEY) || "null");
+    if (!o || o.v !== 1 || typeof o.byTag !== "object" || typeof o.seen !== "object") return blank();
+    return Object.assign(blank(), o);
+  } catch (e) { return blank(); }
+}
+let P = loadProgress();
+const saveProgress = () => store(KEY, JSON.stringify(P));
+
+function record(q, ok) {
+  P.solved++;
+  if (ok) { P.correct++; P.streak++; P.best = Math.max(P.best, P.streak); } else P.streak = 0;
+  q.tags.forEach(t => { const s = P.byTag[t] || (P.byTag[t] = { n: 0, ok: 0 }); s.n++; if (ok) s.ok++; });
+  const s = P.seen[q.id] || (P.seen[q.id] = { n: 0, ok: 0, last: 0 });
+  s.n++; if (ok) s.ok++; s.last = Date.now();
+  // у генератора id задач почти не повторяются: держим в seen только последние 600
+  const ks = Object.keys(P.seen);
+  if (ks.length > 600) ks.sort((a, b) => P.seen[a].last - P.seen[b].last).slice(0, ks.length - 600).forEach(k => delete P.seen[k]);
+  saveProgress();
+}
+
+/* ---------- Тема ---------- */
+function applyStoredTheme() { const t = read("ctp.theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; }
+function isDark() { const t = document.documentElement.dataset.theme; return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
+$("#theme-btn").addEventListener("click", () => { const t = isDark() ? "light" : "dark"; document.documentElement.dataset.theme = t; store("ctp.theme", t); });
+applyStoredTheme();
+
+/* ---------- Проверка данных ---------- */
+const parseFormula = f => { const m = /^(\d)n(\d)c$/.exec(String(f)); return m ? { chr: +m[1], dna: +m[2] } : null; };
+
+function validateQuestion(q, w) {
+  const errs = [];
+  if (!TYPE_NAMES[q.type]) { errs.push(`${w} неизвестный тип «${q.type}»`); return errs; }
+  if (!q.prompt) errs.push(`${w} нет условия`);
+  if (!Array.isArray(q.tags) || !q.tags.length) errs.push(`${w} нет тегов`);
+  const n = Array.isArray(q.options) ? q.options.length : 0;
+  const a = q.answer;
+  if (q.type === "single" && !(/^\d+$/.test(a) && +a >= 1 && +a <= n)) errs.push(`${w} ответ вне вариантов`);
+  if (q.type === "multi") {
+    const d = String(a).split("");
+    if (!d.length || d.some(x => !(+x >= 1 && +x <= n)) || d.join("") !== d.slice().sort().join("") || new Set(d).size !== d.length) errs.push(`${w} ответ должен быть цифрами по возрастанию без повторов`);
+  }
+  if (q.type === "order") {
+    const d = String(a).split("");
+    if (d.length !== n || new Set(d).size !== n || d.some(x => !(+x >= 1 && +x <= n))) errs.push(`${w} последовательность должна содержать все номера по одному разу`);
+  }
+  if (q.type === "match") {
+    const L = Array.isArray(q.left) ? q.left.length : 0;
+    const m = String(a).match(/[А-Я]\d/g) || [];
+    if (!L || m.length !== L || m.join("") !== String(a) || m.some((p, k) => p[0] !== LETTERS[k] || +p[1] < 1 || +p[1] > n)) errs.push(`${w} ответ должен иметь вид ${LETTERS.slice(0, L).map(x => x + "1").join("")}`);
+  }
+  if (q.type === "number" && isNaN(parseNum(a))) errs.push(`${w} ответ не число`);
+  if (q.type === "text" && !(Array.isArray(a) && a.length)) errs.push(`${w} нужен список допустимых ответов`);
+  return errs;
+}
+
+function validate(data) {
+  const errs = [], ids = new Set();
+  const qs = Array.isArray(data.questions) ? data.questions : [];
+  qs.forEach((q, i) => {
+    const w = `Вопрос ${q.id || "№" + (i + 1)}:`;
+    if (!q.id) errs.push(`${w} нет id`); else if (ids.has(q.id)) errs.push(`${w} id повторяется`); else ids.add(q.id);
+    errs.push(...validateQuestion(q, w));
+  });
+  const orgs = Array.isArray(data.organisms) ? data.organisms : [], oids = new Set();
+  if (!orgs.length) errs.push("Нет списка организмов");
+  orgs.forEach((o, i) => {
+    const w = `Организм ${o.id || "№" + (i + 1)}:`;
+    if (!o.id) errs.push(`${w} нет id`); else if (oids.has(o.id)) errs.push(`${w} id повторяется`); else oids.add(o.id);
+    if (!o.name || !o.gen) errs.push(`${w} нужны name и gen (родительный падеж)`);
+    if (!Number.isInteger(o.twoN) || o.twoN < 2 || o.twoN % 2) errs.push(`${w} 2n должно быть чётным целым`);
+    if (typeof o.verified !== "boolean") errs.push(`${w} нет поля verified`);
+  });
+  const sts = Array.isArray(data.states) ? data.states : [], sids = new Set();
+  if (!sts.length) errs.push("Нет таблицы состояний");
+  sts.forEach((s, i) => {
+    const w = `Состояние ${s.id || "№" + (i + 1)}:`;
+    if (!s.id) errs.push(`${w} нет id`); else if (sids.has(s.id)) errs.push(`${w} id повторяется`); else sids.add(s.id);
+    ["text", "forText", "label", "tag", "note"].forEach(k => { if (!s[k]) errs.push(`${w} нет поля ${k}`); });
+    const f = parseFormula(s.formula);
+    if (!f) errs.push(`${w} формула «${s.formula}» не вида 2n4c`);
+    else {
+      if (f.chr !== s.chr || f.dna !== s.dna) errs.push(`${w} множители не совпадают с формулой`);
+      if (s.dichro !== (f.dna > f.chr)) errs.push(`${w} признак двухроматидности не совпадает с формулой`);
+    }
+    if (typeof s.verified !== "boolean") errs.push(`${w} нет поля verified`);
+  });
+  (data.chains || []).forEach((ch, i) => ch.forEach(id => { if (!sids.has(id)) errs.push(`Цепочка ${i + 1}: неизвестное состояние ${id}`); }));
+  const conf = data.confusions || {};
+  Object.keys(conf).forEach(f => { if (!parseFormula(f) || !Array.isArray(conf[f]) || conf[f].length < 3 || conf[f].includes(f)) errs.push(`Ошибочные формулы для ${f} заданы неверно`); });
+  ["2n2c", "2n4c", "1n2c", "1n1c", "4n4c"].forEach(f => { if (!conf[f]) errs.push(`Нет списка ошибочных формул для ${f}`); });
+  return errs;
+}
+
+/* ===================== ГЕНЕРАТОР (чистые функции, без DOM) ===================== */
+const QTY = {
+  chr: { gen: "хромосом",     forms: ["хромосома", "хромосомы", "хромосом"] },
+  dna: { gen: "молекул ДНК",  forms: ["молекула ДНК", "молекулы ДНК", "молекул ДНК"] },
+  chd: { gen: "хроматид",     forms: ["хроматида", "хроматиды", "хроматид"] }
+};
+const plural = (n, f) => { const a = Math.abs(n) % 100, b = a % 10; if (a > 10 && a < 20) return f[2]; if (b === 1) return f[0]; if (b >= 2 && b <= 4) return f[1]; return f[2]; };
+const cnt = (n, q) => `${n} ${plural(n, QTY[q].forms)}`;
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+function makeGen(data, rnd) {
+  rnd = rnd || Math.random;
+  const ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const shuf = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const ORGS = (data.organisms || []).filter(o => o.verified === true);
+  const STATES = (data.states || []).filter(s => s.verified === true);
+  const CHAINS = data.chains || [], CONF = data.confusions || {};
+  const byId = {}; STATES.forEach(s => { byId[s.id] = s; });
+  const orgById = {}; ORGS.forEach(o => { orgById[o.id] = o; });
+  const orgOf = o => ({ key: o.id, twoN: o.twoN, gen: o.gen, abstract: false });
+  const abstractOrg = twoN => ({ key: "a" + twoN, twoN, gen: "животного", abstract: true });
+  const mult = (s, q) => q === "chr" ? s.chr : s.dna;      // хроматид столько же, сколько молекул ДНК
+  const qtyOf = s => s.dichro ? ["chr", "dna", "chd"] : ["chr", "dna"];
+  const loc = s => cap(s.text) + (s.text.includes(",") ? "," : "");
+
+  function pickOrg() { return rnd() < 0.5 && ORGS.length ? orgOf(pick(ORGS)) : abstractOrg(2 * ri(4, 30)); }
+
+  function lastStep(s, q, n, ans) {
+    if (q === "chr") return `Хромосом: ${s.chr} × ${n} = ${ans}.`;
+    if (q === "dna") return `Молекул ДНК: ${s.dna} × ${n} = ${ans}.`;
+    return `Одна молекула ДНК — одна хроматида, поэтому хроматид столько же, сколько молекул ДНК: ${s.dna} × ${n} = ${ans}.`;
+  }
+  const setStep = s => `${loc(s)} набор ${s.formula}: хромосом ${s.chr} × n, молекул ДНК ${s.dna} × n (${s.note}).`;
+
+  // Ш1. Прямой расчёт
+  function build1(org, s, q) {
+    const n = org.twoN / 2, ans = mult(s, q) * n;
+    const cond = org.abstract ? `В соматической клетке животного 2n = ${org.twoN}.` : `В соматических клетках ${org.gen} ${cnt(org.twoN, "chr")}.`;
+    return {
+      id: `gen-t1-${org.key}-${s.id}-${q}`, topic: "А4.5", tags: [s.tag, "прямой расчёт"], level: 1, verified: true,
+      type: "number", prompt: `${cond} Сколько ${QTY[q].gen} содержится ${s.text}?`,
+      answer: String(ans), unit: QTY[q].gen,
+      steps: [`Находим n: 2n = ${org.twoN}, значит n = ${org.twoN} : 2 = ${n}.`, setStep(s), lastStep(s, q, n, ans)],
+      meta: { tpl: 1, org: org.key, twoN: org.twoN, state: s.id, qty: q, sig: `${org.key}|${s.id}|${q}` }
+    };
+  }
+  // Ш2. Обратный расчёт
+  function build2(org, A, qa, B, qb) {
+    const n = org.twoN / 2, K = mult(A, qa) * n, ans = mult(B, qb) * n;
+    return {
+      id: `gen-t2-${org.key}-${A.id}-${qa}-${B.id}-${qb}`, topic: "А4.5", tags: [B.tag, "обратный расчёт"], level: 2, verified: true,
+      type: "number", prompt: `${loc(A)} у ${org.gen} содержится ${cnt(K, qa)}. Сколько ${QTY[qb].gen} содержится ${B.text}?`,
+      answer: String(ans), unit: QTY[qb].gen,
+      steps: [`${loc(A)} набор ${A.formula}: ${QTY[qa].gen} ${mult(A, qa)} × n. Значит, n = ${K} : ${mult(A, qa)} = ${n}.`, setStep(B), lastStep(B, qb, n, ans)],
+      meta: { tpl: 2, org: org.key, twoN: org.twoN, state: B.id, stateA: A.id, qty: qb, qtyA: qa, K, sig: `${org.key}|${B.id}|${qb}` }
+    };
+  }
+  // Ш3. Формула набора
+  function build3(s) {
+    const cand = [];
+    [1, 2].forEach(d => CHAINS.forEach(ch => { const i = ch.indexOf(s.id); if (i < 0) return; [-d, d].forEach(k => { const t = byId[ch[i + k]]; if (t) cand.push(t.formula); }); }));
+    (CONF[s.formula] || []).forEach(f => cand.push(f));
+    const dist = []; cand.forEach(f => { if (f !== s.formula && !dist.includes(f) && dist.length < 3) dist.push(f); });
+    const options = shuf([s.formula].concat(dist));
+    return {
+      id: `gen-t3-${s.id}-${options.join("-")}`, topic: "А4.5", tags: [s.tag, "формула набора"], level: 1, verified: true,
+      type: "single", prompt: `Какой набор хромосом и ДНК характерен для ${s.forText}?`,
+      options, answer: String(options.indexOf(s.formula) + 1),
+      steps: [`Что происходит: ${s.note}.`,
+        `Хромосом: ${s.chr} × n; молекул ДНК: ${s.dna} × n (${s.dichro ? "хромосомы двухроматидные, поэтому молекул ДНК вдвое больше, чем хромосом" : "хромосомы однохроматидные, поэтому молекул ДНК столько же, сколько хромосом"}).`,
+        `Набор записывается как ${s.formula}.`],
+      meta: { tpl: 3, org: "-", state: s.id, qty: "set", sig: `-|${s.id}|set` }
+    };
+  }
+
+  // Независимая проверка: ответ пересчитывается по формуле набора, а не по множителям
+  function verify(q) {
+    const e = [], m = q.meta || {};
+    const s = byId[m.state];
+    if (!s) return ["неизвестное состояние"];
+    const f = parseFormula(s.formula);
+    if (!f || f.chr !== s.chr || f.dna !== s.dna) e.push("множители не совпадают с формулой");
+    if (!Array.isArray(q.steps) || q.steps.length !== 3) e.push("в разборе должно быть 3 шага");
+    else if (/\d+n (хромосом|молекул)/.test(q.steps.join(" "))) e.push("в разборе количество записано как «2n хромосом», нужно «хромосом 2 × n»");
+    else if (q.steps.length === 3 && !/[Хх]ромосом:? \d × n[,;] молекул ДНК:? \d × n/.test(q.steps.join(" "))) e.push("в разборе нет записи «хромосом a × n, молекул ДНК b × n»");
+    if (q.topic !== "А4.5") e.push("topic должен быть А4.5");
+    validateQuestion(q, "q:").forEach(x => e.push(x));
+    if (m.tpl === 1 || m.tpl === 2) {
+      const n = m.twoN / 2;
+      if (!Number.isInteger(n) || n < 1) e.push("n не целое");
+      if (m.qty === "chd" && !s.dichro) e.push("вопрос о хроматидах для однохроматидного состояния");
+      const per = m.qty === "chr" ? f.chr : f.dna;          // хроматид = молекул ДНК
+      const ans = per * n;
+      if (!(Number.isInteger(+q.answer) && +q.answer > 0)) e.push("ответ не целое положительное число");
+      if (+q.answer !== ans) e.push(`ответ ${q.answer} не совпал с пересчётом ${ans}`);
+      if (m.tpl === 1 && !q.prompt.includes(String(m.twoN))) e.push("в условии нет 2n");
+      if (m.tpl === 2) {
+        const A = byId[m.stateA];
+        if (!A) e.push("нет состояния A");
+        else {
+          const fa = parseFormula(A.formula), perA = m.qtyA === "chr" ? fa.chr : fa.dna;
+          if (A.id === s.id) e.push("A совпадает с B");
+          if (m.qtyA === "chd") e.push("в условии Ш2 не должно быть хроматид");
+          if (m.K % perA !== 0) e.push("K не делится на множитель");
+          else if (m.K / perA !== n) e.push("n из K не совпало с n организма");
+          if (!q.prompt.includes(String(m.K))) e.push("в условии нет K");
+        }
+      }
+    }
+    if (m.tpl === 3) {
+      if (new Set(q.options).size !== q.options.length || q.options.length !== 4) e.push("варианты Ш3 не различаются или их не 4");
+      const right = q.options.map((o, i) => o === s.formula ? i + 1 : 0).filter(Boolean);
+      if (right.length !== 1 || String(right[0]) !== q.answer) e.push("в Ш3 не ровно один верный вариант");
+      if (q.options.some(o => !parseFormula(o))) e.push("вариант Ш3 не формула набора");
+    }
+    return e;
+  }
+
+  function buildRandom(tpl, avoid) {
+    const s = pick(STATES);
+    if (avoid && avoid.has(s.id)) return null;
+    if (tpl === 1) return build1(pickOrg(), s, pick(qtyOf(s)));
+    if (tpl === 2) {
+      // A и B из одной цепочки chains примерно в 70 % задач, иначе из разных
+      const near = new Set(); CHAINS.forEach(ch => { if (ch.includes(s.id)) ch.forEach(id => { if (id !== s.id) near.add(id); }); });
+      const inChain = STATES.filter(x => near.has(x.id)), far = STATES.filter(x => x.id !== s.id && !near.has(x.id));
+      const pool = (rnd() < 0.7 ? inChain : far);
+      const A = pick(pool.length ? pool : STATES.filter(x => x.id !== s.id));
+      return build2(pickOrg(), A, pick(["chr", "dna"]), s, pick(qtyOf(s)));
+    }
+    return build3(s);
+  }
+  // Ш2: задача, в которой ответ равен K, остаётся с вероятностью 10 %, иначе перегенерируется
+  const gate2 = q => !(q.meta.tpl === 2 && +q.answer === q.meta.K) || rnd() < 0.1;
+  const pickTpl = () => { const r = rnd(); return r < 0.45 ? 1 : r < 0.75 ? 2 : 3; };
+
+  // Не более 50 попыток; мягкие условия (не повторять прошлую задачу, не брать занятые состояния) ослабляются
+  function next(opts) {
+    opts = opts || {};
+    let last = null;
+    for (let att = 0; att < 50; att++) {
+      const soft = att < 40;
+      const q = buildRandom(opts.tpl || pickTpl(), soft ? opts.avoid : null);
+      if (!q) continue;
+      if (verify(q).length) continue;
+      last = q;
+      if (soft && (q.meta.sig === opts.prevSig || (opts.ids && opts.ids.has(q.id)) || !gate2(q))) continue;
+      return q;
+    }
+    if (last) return last;
+    throw new Error("Не удалось сгенерировать задачу за 50 попыток");
+  }
+
+  // Тест: квоты шаблонов ≈ 45/30/25 %, все состояния в тесте разные, подряд без повторов
+  function test(n) {
+    const n1 = Math.floor(0.45 * n + rnd()), n2 = Math.floor(0.3 * n + rnd()), n3 = Math.max(1, n - n1 - n2);
+    let tpls = [];
+    for (let i = 0; i < n1; i++) tpls.push(1);
+    for (let i = 0; i < n2; i++) tpls.push(2);
+    for (let i = 0; i < n3; i++) tpls.push(3);
+    tpls = shuf(tpls).slice(0, n);
+    const items = [], used = new Set(), ids = new Set();
+    let prevSig = null;
+    tpls.forEach(t => {
+      const q = next({ tpl: t, avoid: used, prevSig, ids });
+      items.push(q); used.add(q.meta.state); ids.add(q.id); prevSig = q.meta.sig;
+    });
+    return items;
+  }
+
+  return { next, test, build1, build2, build3, verify, gate2, raw: tpl => buildRandom(tpl, null), byId, orgById, orgOf, abstractOrg, qtyOf, mult, states: STATES, orgs: ORGS };
+}
+
+/* ---------- Самопроверка генератора (запускается из консоли или Node) ---------- */
+function selfTest(n = 1000) {
+  const g = makeGen(DATA), errors = [], rep = { total: 0, byTpl: { 1: 0, 2: 0, 3: 0 }, abstract: 0, chd: 0 };
+  const fail = m => { if (errors.length < 30) errors.push(m); };
+  // 1. данные
+  validate(DATA).forEach(x => fail("данные: " + x));
+  // 2. случайный прогон
+  let prev = null; const seen = new Set();
+  const chains = DATA.chains || [], sameChain = (a, b) => chains.some(ch => ch.includes(a) && ch.includes(b));
+  let t2 = 0, t2chain = 0, t2eq = 0;
+  for (let i = 0; i < n; i++) {
+    const q = g.next({ prevSig: prev });
+    rep.total++; rep.byTpl[q.meta.tpl]++; if (/^a/.test(q.meta.org)) rep.abstract++; if (q.meta.qty === "chd") rep.chd++;
+    if (q.meta.tpl === 2) { t2++; if (sameChain(q.meta.state, q.meta.stateA)) t2chain++; if (+q.answer === q.meta.K) t2eq++; }
+    if (q.topic !== "А4.5") fail("topic не А4.5: " + q.id);
+    verify1(q);
+    if (prev === q.meta.sig) fail("подряд повторилась задача " + q.id);
+    prev = q.meta.sig; seen.add(q.meta.state);
+  }
+  function verify1(q) { g.verify(q).forEach(x => fail(`${q.id}: ${x}`)); }
+  rep.statesSeen = seen.size; rep.statesTotal = g.states.length;
+  // Ш2: доля пар A/B из одной цепочки (цель ≈ 70 %) и доля задач с ответом = K среди выданных
+  rep.t2 = { count: t2, sameChainPct: Math.round(t2chain / t2 * 100), answerEqualsKPct: Math.round(t2eq / t2 * 1000) / 10 };
+  if (Math.abs(t2chain / t2 - 0.7) > 0.08) fail(`Ш2: доля пар из одной цепочки ${Math.round(t2chain / t2 * 100)} % вместо ≈70 %`);
+  // Ш2: независимая проверка фильтра «ответ = K»: среди сырых кандидатов, где ответ = K, проходит ≈ 10 %
+  let rawEq = 0, rawPass = 0, rawAll = 0;
+  for (let i = 0; i < 40000; i++) { const q = g.raw(2); rawAll++; if (+q.answer === q.meta.K) { rawEq++; if (g.gate2(q)) rawPass++; } }
+  rep.gate = { rawCandidates: rawAll, rawAnswerEqualsKPct: Math.round(rawEq / rawAll * 1000) / 10, passedPct: Math.round(rawPass / rawEq * 1000) / 10 };
+  if (Math.abs(rawPass / rawEq - 0.1) > 0.02) fail(`фильтр ответ = K пропускает ${Math.round(rawPass / rawEq * 100)} % вместо 10 %`);
+  // ожидаемая доля после фильтра при p = доле «ответ = K» среди сырых: 0.1p / (1 − 0.9p)
+  const p = rawEq / rawAll; rep.gate.expectedDeliveredPct = Math.round(0.1 * p / (1 - 0.9 * p) * 1000) / 10;
+  if (seen.size !== g.states.length) fail("не каждое состояние встретилось в случайном прогоне");
+  // 3. полный перебор
+  let sweep = 0;
+  const twoNs = []; for (let t = 8; t <= 60; t += 2) twoNs.push(t);
+  const orgsAll = g.orgs.map(g.orgOf).concat(twoNs.map(g.abstractOrg));
+  orgsAll.forEach(o => g.states.forEach(s => g.qtyOf(s).forEach(q => { verify1(g.build1(o, s, q)); sweep++; })));
+  [8, 60, 46, 78].forEach(t => {
+    const o = g.abstractOrg(t);
+    g.states.forEach(B => g.states.forEach(A => { if (A.id === B.id) return;
+      ["chr", "dna"].forEach(qa => g.qtyOf(B).forEach(qb => { verify1(g.build2(o, A, qa, B, qb)); sweep++; })); }));
+  });
+  g.states.forEach(s => { for (let k = 0; k < 40; k++) { verify1(g.build3(s)); sweep++; } });
+  rep.sweep = sweep;
+  // 4. тесты: 10 заданий, состояния разные
+  for (let k = 0; k < 200; k++) {
+    const t = g.test(10);
+    if (t.length !== 10) fail("в тесте не 10 заданий");
+    if (new Set(t.map(q => q.meta.state)).size !== 10) fail("в тесте повторяются состояния");
+    if (new Set(t.map(q => q.meta.tpl)).size !== 3) fail("в тесте нет всех трёх шаблонов");
+    t.forEach(verify1);
+  }
+  // 5. крайние случаи с заранее известными ответами
+  const edge = [
+    [8, "mit-ana", "chr", 16], [8, "mit-ana", "dna", 16], [78, "mit-ana", "chr", 156], [78, "mit-ana", "dna", 156],
+    [8, "mei2-ana", "chr", 8], [8, "mei2-ana", "dna", 8], [78, "mei2-ana", "chr", 78], [78, "mei2-ana", "dna", 78]
+  ];
+  rep.edge = edge.map(([t, sid, q, want]) => {
+    const o = g.abstractOrg(t), s = g.byId[sid], b = g.build1(o, s, q);
+    if (+b.answer !== want) fail(`крайний случай 2n=${t} ${sid} ${q}: ${b.answer} вместо ${want}`);
+    if (g.qtyOf(s).includes("chd")) fail(`${sid}: разрешены хроматиды`);
+    return { twoN: t, state: sid, qty: q, got: +b.answer, want };
+  });
+  rep.errors = errors; rep.ok = errors.length === 0;
+  return rep;
+}
+
+/* ===================== ДАННЫЕ И ГЕНЕРАТОР: запуск ===================== */
+let DATA = { learn: [], organisms: [], states: [], questions: [] }, DATA_ERRORS = [], GEN = null;
+try {
+  DATA = JSON.parse($("#app-data").textContent);
+  DATA_ERRORS = validate(DATA);
+  if (!DATA_ERRORS.length) GEN = makeGen(DATA);
+} catch (e) { DATA_ERRORS = ["Блок данных не является корректным JSON: " + e.message]; }
+let lastSig = null;
+
+/* ---------- Ответы ---------- */
+function newState(q) { return { sel: [], match: {}, order: [], value: "" }; }
+function currentAnswer(q, st) {
+  switch (q.type) {
+    case "single": return st.sel.length ? String(st.sel[0] + 1) : null;
+    case "multi": return st.sel.length ? st.sel.map(i => i + 1).sort((a, b) => a - b).join("") : null;
+    case "match": return q.left.every((_, i) => st.match[i]) ? q.left.map((_, i) => LETTERS[i] + st.match[i]).join("") : null;
+    case "order": return st.order.length === q.options.length ? st.order.map(i => i + 1).join("") : null;
+    case "number": return isNaN(parseNum(st.value)) ? null : st.value.trim();
+    case "text": return st.value.trim() ? st.value.trim() : null;
+  }
+  return null;
+}
+function isCorrect(q, ans) {
+  if (ans == null) return false;
+  if (q.type === "number") return Math.abs(parseNum(ans) - parseNum(q.answer)) <= (q.tolerance || 0) + 1e-9;
+  if (q.type === "text") return q.answer.map(normText).includes(normText(ans));
+  return ans === String(q.answer);
+}
+function answerLabel(q, ans) {
+  if (ans == null || ans === "") return "нет ответа";
+  if (q.type === "single") return `${ans} — ${q.options[+ans - 1]}`;
+  if (q.type === "number") return `${ans}${q.unit ? " " + q.unit : ""}`;
+  if (q.type === "text") return Array.isArray(ans) ? ans[0] : ans;
+  return ans;
+}
+
+/* ---------- Отрисовка задания ---------- */
+function renderQuestion(box, q, st, onChange) {
+  const head = `<div class="meta"><span class="tag">${esc(TYPE_NAMES[q.type])}</span>${q.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}${q.topic && q.topic !== "—" ? `<span class="tag">${esc(q.topic)}</span>` : ""}</div>
+    <p class="prompt">${rich(q.prompt)}</p>${TYPE_HINTS[q.type] ? `<p class="hint">${TYPE_HINTS[q.type]}</p>` : ""}`;
+  let body = "";
+  if (q.type === "single" || q.type === "multi" || q.type === "order") {
+    body = `<ul class="opts">${q.options.map((o, i) => `<li><button type="button" class="opt" data-i="${i}"><span class="num">${i + 1}</span><span class="txt">${rich(o)}</span><span class="mark"></span></button></li>`).join("")}</ul>`;
+    if (q.type === "order") body += `<div class="row" style="align-items:center;justify-content:space-between"><p class="answer-line" id="order-line"></p><button type="button" class="btn btn-text" id="order-reset">Сбросить порядок</button></div>`;
+  }
+  if (q.type === "match") {
+    body = `<ol class="match-right">${q.options.map((o, i) => `<li><b>${i + 1}</b><span>${rich(o)}</span></li>`).join("")}</ol>` +
+      q.left.map((l, i) => `<div class="match-row"><div class="left"><span class="letter">${LETTERS[i]}</span><span>${rich(l)}</span></div>
+        <div class="chips" role="group" aria-label="Цифра для ${LETTERS[i]}">${q.options.map((_, k) => `<button type="button" class="chip" data-l="${i}" data-k="${k + 1}" aria-label="${LETTERS[i]} — ${k + 1}">${k + 1}</button>`).join("")}</div></div>`).join("") +
+      `<p class="answer-line" id="match-line"></p>`;
+  }
+  if (q.type === "number" || q.type === "text") {
+    body = `<div class="field"><input class="input" id="answer-input" autocomplete="off" ${q.type === "number" ? 'inputmode="decimal"' : 'autocapitalize="off" spellcheck="false"'} enterkeyhint="done" aria-label="Ответ" placeholder="${q.type === "number" ? "Число" : "Ответ"}">${q.unit ? `<span class="unit">${esc(q.unit)}</span>` : ""}</div>`;
+  }
+  box.innerHTML = head + body + `<div id="feedback"></div>`;
+
+  const refresh = () => {
+    if (q.type === "single" || q.type === "multi") $$(".opt", box).forEach(b => b.classList.toggle("sel", st.sel.includes(+b.dataset.i)));
+    if (q.type === "order") {
+      $$(".opt", box).forEach(b => { const pos = st.order.indexOf(+b.dataset.i); b.classList.toggle("sel", pos >= 0); $(".num", b).textContent = pos >= 0 ? pos + 1 : "·"; });
+      $("#order-line", box).innerHTML = st.order.length ? `Твой порядок: <b>${st.order.map(i => i + 1).join(" ")}</b>` : "Номера вариантов появятся по мере нажатия";
+    }
+    if (q.type === "match") {
+      $$(".chip", box).forEach(c => c.classList.toggle("sel", String(st.match[c.dataset.l]) === c.dataset.k));
+      $("#match-line", box).innerHTML = `Ответ: <b>${q.left.map((_, i) => LETTERS[i] + (st.match[i] || "_")).join("")}</b>`;
+    }
+    onChange();
+  };
+  if (q.type === "order") $$(".opt", box).forEach(b => $(".num", b).textContent = "·");
+  box.addEventListener("click", e => {
+    const opt = e.target.closest(".opt"), chip = e.target.closest(".chip");
+    if (opt && !opt.disabled) {
+      const i = +opt.dataset.i;
+      if (q.type === "single") st.sel = [i];
+      if (q.type === "multi") st.sel = st.sel.includes(i) ? st.sel.filter(x => x !== i) : st.sel.concat(i);
+      if (q.type === "order" && !st.order.includes(i)) st.order.push(i);
+      refresh();
+    }
+    if (chip && !chip.disabled) { st.match[chip.dataset.l] = +chip.dataset.k; refresh(); }
+    if (e.target.id === "order-reset") { st.order = []; refresh(); }
+  });
+  const inp = $("#answer-input", box);
+  if (inp) {
+    inp.addEventListener("input", () => { st.value = inp.value; onChange(); });
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#primary-btn").click(); } });
+  }
+  refresh();
+}
+
+function lockQuestion(box, q, st) {
+  $$("button.opt, button.chip, #order-reset", box).forEach(b => b.disabled = true);
+  const inp = $("#answer-input", box); if (inp) inp.readOnly = true;
+  if (q.type === "single" || q.type === "multi") {
+    const right = String(q.answer).split("").map(d => +d - 1);
+    $$(".opt", box).forEach(b => {
+      const i = +b.dataset.i, picked = st.sel.includes(i), good = right.includes(i);
+      b.classList.remove("sel");
+      if (good) { b.classList.add("is-ok"); $(".mark", b).textContent = "✓"; }
+      else if (picked) { b.classList.add("is-err"); $(".mark", b).textContent = "✗"; }
+    });
+  }
+}
+
+function feedbackHtml(q, ans, ok) {
+  const steps = Array.isArray(q.steps) && q.steps.length
+    ? `<details class="review"><summary>Разбор</summary><ol class="steps">${q.steps.map(s => `<li>${rich(s)}</li>`).join("")}</ol></details>` : "";
+  return ok
+    ? `<div class="note note-ok"><strong>✓ Верно</strong></div>${steps}`
+    : `<div class="note note-err"><strong>✗ Неверно</strong><span>Правильный ответ: <b>${rich(answerLabel(q, q.answer))}</b></span>${ans != null ? `<span class="small">Твой ответ: ${esc(answerLabel(q, ans))}</span>` : ""}</div>${steps}`;
+}
+
+/* ---------- Панель действий ---------- */
+const bar = $("#actionbar"), primary = $("#primary-btn");
+function setPrimary(label, onClick, enabled = true) {
+  bar.hidden = false; primary.textContent = label; primary.disabled = !enabled; primary.onclick = onClick;
+}
+function hidePrimary() { bar.hidden = true; primary.onclick = null; }
+
+/* ---------- Счётчик ---------- */
+let testHeader = null;
+function renderProgress() {
+  const el = $("#progress");
+  if (testHeader) { el.innerHTML = testHeader; return; }
+  el.innerHTML = `<span>Решено <b>${P.solved}</b></span><span>·</span><span>верно <b>${pct(P.correct, P.solved)} %</b></span><span>·</span><span>серия <b>${P.streak}</b></span>`;
+}
+
+/* ---------- Режим «Учить» ---------- */
+function statesTable() {
+  const groups = [];
+  GEN.states.forEach(s => { let g = groups.find(x => x.tag === s.tag); if (!g) groups.push(g = { tag: s.tag, rows: [] }); g.rows.push(s); });
+  return `<section class="card"><h2>Все состояния и их наборы</h2>
+    <div class="table-wrap"><table class="states"><thead><tr><th>Состояние</th><th>Набор</th><th>Хроматид в хромосоме</th></tr></thead><tbody>${
+      groups.map(g => `<tr class="grp"><th colspan="3">${esc(g.tag)}</th></tr>` + g.rows.map(s => `<tr><td>${rich(s.label)}</td><td class="fcell">${esc(s.formula)}</td><td>${s.dichro ? 2 : 1}</td></tr>`).join("")).join("")
+    }</tbody></table></div>
+    <div class="note note-info"><span>Хроматиды считают только у двухроматидных хромосом: их столько же, сколько молекул ДНК.</span></div></section>`;
+}
+function exampleCard() {
+  const q = GEN.build1(GEN.orgOf(GEN.orgById["human"]), GEN.byId["mit-meta"], "dna");
+  return `<section class="card"><h3>ПРИМЕР РЕШЕНИЯ</h3><p class="prompt">${rich(q.prompt)}</p>
+    <ol class="steps">${q.steps.map(s => `<li>${rich(s)}</li>`).join("")}</ol>
+    <div class="note note-ok"><span>Ответ: <b>${esc(q.answer)} ${esc(q.unit)}</b></span></div></section>`;
+}
+function viewLearn(main) {
+  hidePrimary();
+  main.innerHTML = (DATA.learn || []).map(c => `<section class="card">
+      <h2>${rich(c.title)}</h2><p style="margin:0">${rich(c.text)}</p></section>`).join("") + statesTable() + exampleCard();
+}
+
+/* ---------- Режим «Тренировка» ---------- */
+function viewTrain(main) {
+  const q = GEN.next({ prevSig: lastSig }), st = newState(q);
+  lastSig = q.meta.sig;
+  main.innerHTML = `<section class="card" id="qcard"></section>`;
+  const box = $("#qcard");
+  let checked = false;
+  const check = () => {
+    const ans = currentAnswer(q, st); if (ans == null) return;
+    checked = true;
+    const ok = isCorrect(q, ans);
+    record(q, ok); renderProgress();
+    lockQuestion(box, q, st);
+    $("#feedback", box).innerHTML = feedbackHtml(q, ans, ok);
+    setPrimary("Дальше", () => { viewTrain(main); window.scrollTo({ top: 0 }); });
+  };
+  renderQuestion(box, q, st, () => { if (!checked) setPrimary("Проверить", check, currentAnswer(q, st) != null); });
+}
+
+/* ---------- Режим «Тест» ---------- */
+let T = null;
+function viewTest(main) {
+  if (!T) {
+    const n = APP.testSize;
+    main.innerHTML = `<section class="card"><h2>Тест из ${n} заданий</h2>
+      <p style="margin:0">Ответы проверяются в конце. После итога можно посмотреть разбор каждой ошибки.</p>
+      ${P.lastTest ? `<p class="hint">Прошлый результат: ${P.lastTest.score} из ${P.lastTest.total} (${esc(P.lastTest.date)})</p>` : ""}</section>`;
+    setPrimary("Начать тест", () => { T = { items: GEN.test(n), i: 0, answers: [], done: false }; viewTest(main); });
+    return;
+  }
+  if (T.done) return viewTestResult(main);
+  const q = T.items[T.i], st = newState(q), last = T.i === T.items.length - 1;
+  testHeader = `<span>Задание <b>${T.i + 1}</b> из <b>${T.items.length}</b></span>`; renderProgress();
+  main.innerHTML = `<section class="card" id="qcard"></section><button type="button" class="btn btn-text" id="quit-test">Прервать тест</button>`;
+  $("#quit-test").onclick = () => { T = null; testHeader = null; renderProgress(); viewTest(main); };
+  const submit = () => {
+    const ans = currentAnswer(q, st); if (ans == null) return;
+    T.answers.push(ans); T.i++;
+    if (last) {
+      T.done = true;
+      let score = 0;
+      T.items.forEach((qq, k) => { const ok = isCorrect(qq, T.answers[k]); if (ok) score++; record(qq, ok); });
+      P.lastTest = { score, total: T.items.length, date: today() }; saveProgress();
+    }
+    viewTest(main); window.scrollTo({ top: 0 });
+  };
+  renderQuestion($("#qcard"), q, st, () => setPrimary(last ? "Завершить тест" : "Ответить", submit, currentAnswer(q, st) != null));
+}
+function viewTestResult(main) {
+  testHeader = null; renderProgress();
+  const wrong = T.items.map((q, k) => ({ q, a: T.answers[k] })).filter(x => !isCorrect(x.q, x.a));
+  const score = T.items.length - wrong.length;
+  main.innerHTML = `<section class="card"><h3>ИТОГ</h3><div class="score">${score} <small>из ${T.items.length}</small></div>
+      <p style="margin:0">${wrong.length ? `Ошибок: ${wrong.length}. Разбор каждой — ниже.` : "Все ответы верные."}</p></section>` +
+    wrong.map(({ q, a }) => `<section class="card"><div class="meta">${q.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("")}</div>
+      <p class="prompt">${rich(q.prompt)}</p>${feedbackHtml(q, a, false)}</section>`).join("");
+  setPrimary("Пройти ещё раз", () => { T = null; viewTest(main); });
+}
+
+/* ---------- Режим «Ошибки» ---------- */
+function reportText(name) {
+  const tags = Object.entries(P.byTag).filter(([, s]) => s.n > 0).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n).slice(0, 6);
+  const lines = [
+    `Отчёт: ${APP.title} v${APP.version}`,
+    `Ученик: ${name.trim() || "без имени"}`,
+    `Дата: ${today()}`,
+    P.solved ? `Решено заданий: ${P.solved}, верно ${P.correct} (${pct(P.correct, P.solved)} %)` : "Пока нет решённых заданий",
+  ];
+  if (P.solved) lines.push(`Лучшая серия: ${P.best}`);
+  if (P.lastTest) lines.push(`Последний тест: ${P.lastTest.score} из ${P.lastTest.total} (${P.lastTest.date})`);
+  if (tags.length) { lines.push("По темам (сначала слабые):"); tags.forEach(([t, s]) => lines.push(`— ${t}: ${s.ok} из ${s.n} (${pct(s.ok, s.n)} %)`)); }
+  return lines.join("\n");
+}
+function viewStats(main) {
+  hidePrimary();
+  const tags = Object.entries(P.byTag).filter(([, s]) => s.n > 0).sort((a, b) => a[1].ok / a[1].n - b[1].ok / b[1].n);
+  const name = read("ctp.student") || "";
+  main.innerHTML = `
+    <section class="card">
+      <h3>ПРОГРЕСС</h3>
+      <div class="stats">
+        <div class="stat"><b>${P.solved}</b><span>решено</span></div>
+        <div class="stat"><b>${pct(P.correct, P.solved)} %</b><span>верно</span></div>
+        <div class="stat"><b>${P.best}</b><span>лучшая серия</span></div>
+      </div>
+      ${P.lastTest ? `<p class="hint">Последний тест: ${P.lastTest.score} из ${P.lastTest.total} · ${esc(P.lastTest.date)}</p>` : ""}
+    </section>
+    <section class="card">
+      <h3>ПО ТЕМАМ · СНАЧАЛА СЛАБЫЕ</h3>
+      ${tags.length ? tags.map(([t, s]) => { const p = pct(s.ok, s.n); return `<div class="tag-stat"><div class="top"><span>${esc(t)}</span><span>${s.ok} из ${s.n} · ${p} %</span></div><div class="bar ${p < 50 ? "low" : p < 80 ? "mid" : ""}"><i style="width:${Math.max(p, 4)}%"></i></div></div>`; }).join("")
+        : `<p style="margin:0">Пока нет решённых заданий.</p><button type="button" class="btn btn-secondary" id="go-train">Начать тренировку</button>`}
+    </section>
+    <section class="card">
+      <h3>ОТЧЁТ РЕПЕТИТОРУ</h3>
+      <label class="lbl" for="student-name">Имя и фамилия (сохраняется только на этом телефоне)</label>
+      <input class="input" id="student-name" autocomplete="name" placeholder="Например, Аня К." value="${esc(name)}">
+      <pre class="report" id="report"></pre>
+      <div class="row">
+        <a class="btn btn-primary" id="tg-link" target="_blank" rel="noopener">Отправить в Telegram</a>
+        <button type="button" class="btn btn-secondary" id="copy-btn">Скопировать</button>
+      </div>
+      <p class="hint" id="report-hint">Откроется Telegram с готовым текстом. Выбери чат с репетитором${APP.tutorContact ? ` (${esc(APP.tutorContact)})` : ""} и нажми «Отправить».</p>
+    </section>
+    <section class="card" id="reset-card">
+      <button type="button" class="btn btn-text" id="reset-btn" style="align-self:flex-start">Сбросить прогресс</button>
+    </section>`;
+
+  const nameEl = $("#student-name"), rep = $("#report"), tg = $("#tg-link");
+  const upd = () => { const t = reportText(nameEl.value); rep.textContent = t; tg.href = "https://t.me/share/url?url=" + encodeURIComponent(t); };
+  nameEl.addEventListener("input", () => { store("ctp.student", nameEl.value); upd(); });
+  upd();
+  $("#copy-btn").onclick = () => {
+    const t = rep.textContent, hint = $("#report-hint");
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(rep); const s = getSelection(); s.removeAllRanges(); s.addRange(r); hint.textContent = "Текст выделен — скопируй его и отправь репетитору."; };
+    try { navigator.clipboard.writeText(t).then(() => hint.textContent = "Скопировано. Вставь текст в чат с репетитором.", fallback); } catch (e) { fallback(); }
+  };
+  const go = $("#go-train"); if (go) go.onclick = () => setMode("train");
+  $("#reset-btn").onclick = () => {
+    $("#reset-card").innerHTML = `<p style="margin:0"><b>Сбросить прогресс?</b> Статистика этого приложения удалится с телефона.</p>
+      <div class="row"><button type="button" class="btn btn-danger" id="reset-yes">Сбросить</button><button type="button" class="btn btn-secondary" id="reset-no">Отмена</button></div>`;
+    $("#reset-yes").onclick = () => { P = blank(); saveProgress(); renderProgress(); viewStats(main); };
+    $("#reset-no").onclick = () => viewStats(main);
+  };
+}
+
+/* ---------- Каркас ---------- */
+let mode = null;
+function setMode(m) {
+  if (m !== "test" && T && !T.done) { T = null; }
+  if (m !== "test") testHeader = null;
+  mode = m; store(`ctp.${APP.id}.mode`, m);
+  $$(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.m === m ? "true" : "false"));
+  renderProgress();
+  const main = $("#main");
+  ({ learn: viewLearn, train: viewTrain, test: viewTest, stats: viewStats })[m](main);
+  window.scrollTo({ top: 0 });
+}
+function boot() {
+  document.title = APP.title;
+  $("#app-title").textContent = APP.title;
+  $("#app-codes").textContent = APP.topics.join(" · ");
+  $("#tabs").innerHTML = APP.modes.map(m => `<button type="button" role="tab" class="tab" data-m="${m}">${MODE_NAMES[m]}</button>`).join("");
+  $("#tabs").addEventListener("click", e => { const t = e.target.closest(".tab"); if (t) setMode(t.dataset.m); });
+  $("#foot").innerHTML = `<span>Учебный материал для подготовки к ЦТ</span>
+    ${APP.catalogUrl ? `<a href="${esc(APP.catalogUrl)}"${/^https?:/.test(APP.catalogUrl) ? ' target="_blank" rel="noopener"' : ""}>Все тренажёры →</a>` : ""}
+    <span>v${esc(APP.version)}</span>`;
+  if (DATA_ERRORS.length) {
+    hidePrimary();
+    $("#main").innerHTML = `<section class="card"><div class="note note-err"><strong>Ошибка в данных приложения</strong>
+      <ol class="steps">${DATA_ERRORS.map(e => `<li>${esc(e)}</li>`).join("")}</ol></div></section>`;
+    return;
+  }
+  const saved = read(`ctp.${APP.id}.mode`);
+  setMode(APP.modes.includes(saved) ? saved : APP.modes.includes("train") ? "train" : APP.modes[0]);
+}
+boot();
+/* Офлайн-режим сайта (Стандарт, п. 12) */
+try { if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("../../sw.js", { scope: "../../" }).catch(() => {}); } catch (e) {}
+</script>
+
+</body>
+</html>

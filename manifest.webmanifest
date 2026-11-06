@@ -1,0 +1,16 @@
+{
+  "name": "Биология · подготовка к ЦТ",
+  "short_name": "Биология ЦТ",
+  "description": "Тренажёры и генераторы задач для подготовки к ЦТ по биологии",
+  "lang": "ru",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F7F5F0",
+  "theme_color": "#4F8E80",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
